@@ -1,4 +1,11 @@
 {
   "version": 1,
-  "skills": {}
+  "skills": {
+    "benji-design": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/benji-design/SKILL.md",
+      "computedHash": "dc6e7cdc05cd3a2b60c0eaecd4316506c451c0cccf5e2f78d3c404889c6c3810"
+    }
+  }
 }
