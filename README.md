@@ -8,11 +8,57 @@ They distill the design-engineering philosophy behind [Benji Taylor's](https://b
 
 ## Install
 
+These skills work with any agent supported by the [`skills` CLI](https://github.com/vercel-labs/skills) (Vercel Labs) — **Claude Code, Codex, Cursor, OpenCode**, and [70+ more](https://skills.sh). Run this from your project root; it asks which agent(s) to wire up:
+
 ```bash
 npx skills@latest add bochenn/benjitaylor-skills
 ```
 
-Or just copy the skill folder you want from [`.agents/skills/`](./.agents/skills) into your own project — each skill is a self-contained `SKILL.md` (plus, for `benji-design-v3`, a few reference files loaded on demand).
+### Install just one variant
+
+For real use you usually want a single variant (recommended: `benji-design-v3`):
+
+```bash
+npx skills@latest add bochenn/benjitaylor-skills --skill benji-design-v3
+```
+
+Swap in `benji-design` (philosophy) or `benji-design-code-audit` as needed.
+
+### Target a specific AI agent
+
+Use `-a` / `--agent` to install straight into one tool (skip the prompt):
+
+```bash
+# Claude Code
+npx skills@latest add bochenn/benjitaylor-skills -s benji-design-v3 -a claude-code
+
+# Codex
+npx skills@latest add bochenn/benjitaylor-skills -s benji-design-v3 -a codex
+
+# Cursor
+npx skills@latest add bochenn/benjitaylor-skills -s benji-design-v3 -a cursor
+
+# every agent you have
+npx skills@latest add bochenn/benjitaylor-skills -s benji-design-v3 -a '*'
+```
+
+Add `-g` to install globally (`~/<agent>/skills/`, available in every project) instead of just the current one (`./<agent>/skills/`). Claude Code, Codex, and Cursor pick up the `SKILL.md` automatically on the next session.
+
+### Try it without installing
+
+```bash
+# start Claude Code with the skill loaded, nothing written to your repo
+npx skills@latest use bochenn/benjitaylor-skills --skill benji-design-v3 --agent claude-code
+
+# or pipe the generated prompt into any tool
+npx skills@latest use bochenn/benjitaylor-skills --skill benji-design-v3 | claude
+```
+
+### Manual install / any other AI
+
+Every skill is a self-contained `SKILL.md` under [`.agents/skills/`](./.agents/skills). For a tool the CLI doesn't cover (or for claude.ai), copy the skill folder into wherever that tool reads instructions — `.claude/skills/` for Claude Code, `.cursor/rules/` for Cursor, an `AGENTS.md`, or just paste the file's contents into the system/rules prompt. For `benji-design-v3`, include its `references/` folder too.
+
+Manage what's installed with `npx skills list`, `npx skills update`, and `npx skills remove`.
 
 ## Why use it?
 
