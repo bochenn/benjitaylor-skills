@@ -56,7 +56,7 @@ npx skills@latest use bochenn/benjitaylor-skills --skill benji-design-v3 | claud
 
 ### Manual install / any other AI
 
-Every skill is a self-contained `SKILL.md` under [`.agents/skills/`](./.agents/skills). For a tool the CLI doesn't cover (or for claude.ai), copy the skill folder into wherever that tool reads instructions — `.claude/skills/` for Claude Code, `.cursor/rules/` for Cursor, an `AGENTS.md`, or just paste the file's contents into the system/rules prompt. For `benji-design-v3`, include its `references/` folder too.
+Every skill is a self-contained `SKILL.md` under [`skills/`](./skills). For a tool the CLI doesn't cover (or for claude.ai), copy the skill folder into wherever that tool reads instructions — `.claude/skills/` for Claude Code, `.cursor/rules/` for Cursor, an `AGENTS.md`, or just paste the file's contents into the system/rules prompt. For `benji-design-v3`, include its `references/` folder too.
 
 Manage what's installed with `npx skills list`, `npx skills update`, and `npx skills remove`.
 
@@ -72,11 +72,11 @@ These skills encode those decisions — the easing curves, the timing, the conti
 
 This repo ships **three variants of the same philosophy** so you can pick the one that fits how you work. They cover the same ground — motion, continuity, morphing, performance, component APIs, theming, and working with an AI agent — but differ in shape and length.
 
-- **[benji-design](./.agents/skills/benji-design/SKILL.md)** — Craft-first. Opinionated and evidence-grounded, with concrete curves, durations, and code examples pulled straight from Benji's open-source work. Reads like a design engineer talking. Single file.
+- **[benji-design](./skills/benji-design/SKILL.md)** — Craft-first. Opinionated and evidence-grounded, with concrete curves, durations, and code examples pulled straight from Benji's open-source work. Reads like a design engineer talking. Single file.
 
-- **[benji-design-v3](./.agents/skills/benji-design-v3/SKILL.md)** — **Recommended.** The balanced version: a lean ~200-line core that opens with a strict priority-order gate (correctness → accessibility → simplicity → conventions → performance → fluidity → delight), an inspect-then-verify workflow, and stack detection — then points to four [`references/`](./.agents/skills/benji-design-v3/references) files loaded only when a task needs them. Keeps the concrete voice, adds the safety rails, stays cheap on context.
+- **[benji-design-v3](./skills/benji-design-v3/SKILL.md)** — **Recommended.** The balanced version: a lean ~200-line core that opens with a strict priority-order gate (correctness → accessibility → simplicity → conventions → performance → fluidity → delight), an inspect-then-verify workflow, and stack detection — then points to four [`references/`](./skills/benji-design-v3/references) files loaded only when a task needs them. Keeps the concrete voice, adds the safety rails, stays cheap on context.
 
-- **[benji-design-code-audit](./.agents/skills/benji-design-code-audit/SKILL.md)** — Procedure-first. The most thorough: operating modes (`audit` / `fix` / `improve` / `build` / `system`), a full required workflow, severity classification, and a modification-report format. Best when you want an agent to run a disciplined, repeatable audit over a whole frontend.
+- **[benji-design-code-audit](./skills/benji-design-code-audit/SKILL.md)** — Procedure-first. The most thorough: operating modes (`audit` / `fix` / `improve` / `build` / `system`), a full required workflow, severity classification, and a modification-report format. Best when you want an agent to run a disciplined, repeatable audit over a whole frontend.
 
 Not sure which to start with? Use **`benji-design-v3`**.
 
