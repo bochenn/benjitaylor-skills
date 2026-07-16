@@ -16,6 +16,14 @@ displayRef.current = lerp(displayRef.current, targetRef.current, speed, dt)
 
 Do not write the interpolated presentation value back into business/logical state. Truth and presentation are separate.
 
+### Move the whole as one — shared interpolation is what "breathing" means
+
+The cohesion isn't per-widget; it's that **every animated quantity eases toward its target with the *same* interpolation**. Value, axis range, badge width, tick labels, gridline positions, glow opacity — all driven by the same `lerp` with the same `speed` and the same measured `dt`, in one loop. When they share the interpolation, a change ripples through the whole surface at one tempo and it reads as a single organism reflowing, not a cluster of independent parts each updating on its own clock.
+
+> "That's why it feels like one thing breathing rather than a bunch of parts updating independently."
+
+Practically: keep one frame loop, thread one `dt` into every lerp it drives, and derive dependent geometry (label positions, badge width) from the *displayed* values, not the raw targets — so nothing races ahead of the value it annotates.
+
 ## Frame-rate-independent interpolation
 
 A naive `current += (target - current) * 0.08` converges twice as fast at 120fps as at 60fps — the *personality* of the motion drifts with the hardware. Convert the per-frame fraction into a continuous exponential decay parameterized by real elapsed time:
@@ -101,6 +109,19 @@ Resize backing buffers only when dimensions actually change.
 ### Allocation and lookup
 
 In frame loops: avoid per-frame array/object creation (reuse buffers; compact arrays with a write-index instead of `filter()`); use binary search for hover/hit-testing over large sorted data, not O(n) scans; avoid unnecessary formatting work; stop once presentation reaches the target. At 60fps, per-frame allocation causes GC pauses that show up as stutter.
+
+## Stress-test against worst-case data, not the happy path
+
+An animation that only looks good on calm, ideal input is untested. The smoothing decisions above (adaptive speed, snap epsilon, clamped `dt`, monotone interpolation) all break in different ways under adversarial data — so drive the loop with the worst case before you trust it:
+
+- **Sharp reversals** — a value that climbs then plunges. This is the classic breaking point for interpolation: an overshooting spline draws a dip below a low that never happened, and a slow adaptive speed lags visibly behind the turn.
+- **Isolated spikes on a flat baseline** — one outlier against calm data stresses the axis-range chase and the snap epsilon.
+- **Rapid oscillation** — fast up/down/up exposes queued/stale animations and shimmer that never settles.
+- **Irregular / bursty arrival with gaps** — clustered updates then silence stress the frame loop's idle-stop/restart and the `dt` clamp (a gap must not teleport the presentation on resume).
+
+> "A chart that only looks good on calm data isn't much use… Sharp reversals are the classic breaking point."
+
+Feed synthetic worst-case sequences through the same code path in the VERIFY step; a chart tuned only on real, calm feeds is not verified.
 
 ## Correctness is an aesthetic
 
