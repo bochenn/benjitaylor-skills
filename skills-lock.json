@@ -5,19 +5,19 @@
       "source": "local",
       "sourceType": "local",
       "skillPath": "skills/benji-design/SKILL.md",
-      "computedHash": "dc6e7cdc05cd3a2b60c0eaecd4316506c451c0cccf5e2f78d3c404889c6c3810"
+      "computedHash": "9603381e157a7019a4e5bb949de689b545f6576faceaee7ed600768cc6f2f2cb"
     },
     "benji-design-v3": {
       "source": "local",
       "sourceType": "local",
       "skillPath": "skills/benji-design-v3/SKILL.md",
-      "computedHash": "718d5408e444c0d8f1dcee324da0cdeba6b10550a7a5a05c93fd81001a6b422d"
+      "computedHash": "fafc9a918411a87652f79a465f005e5d54f593e88f0f1fe743e8ecc5508764b1"
     },
     "benji-design-code-audit": {
       "source": "local",
       "sourceType": "local",
       "skillPath": "skills/benji-design-code-audit/SKILL.md",
-      "computedHash": "f37d5b80b768e9f7ef1efd1fe4b5f993b56358c6ac457e7a57cc53d730abec58"
+      "computedHash": "ab19ca9c977395b8f0d528246226ba4114c03a3fdd2f5c1fa185876528bf2631"
     }
   }
 }

@@ -68,6 +68,8 @@ Preserve authoritative data and logical state (**animate presentation, not truth
 
 Run the repo's formatter, then relevant type-check / lint / tests / build. Exercise the interaction in both directions; test rapid repeated activation; interrupt mid-animation and reverse; test loading/empty/success/failure/disabled/unmount, keyboard/focus, pointer/touch, reduced-motion, and narrow/wide layouts. Watch for clipping, scroll jumps, stale state, duplicate elements, focus loss, layout shift, queued animations.
 
+**Stress-test motion against worst-case data, not the happy path.** Anything that animates from live/streaming data must be exercised against sharp reversals (the classic breaking point for interpolation), isolated spikes on flat baselines, rapid oscillation, and irregular/bursty arrival with gaps — not just calm, ideal input. "A chart that only looks good on calm data isn't much use."
+
 **Never claim an interaction "feels correct" if you could not run or observe it.** Say what you verified statically and what still needs visual confirmation.
 
 ## The Motion Decision Framework
@@ -98,6 +100,10 @@ Frequent keyboard-driven actions should generally stay immediate — animation t
 **Avoid abrupt change *when continuity helps* — but not universally.** Do not animate every mount/unmount reflexively. Add continuity when the user can visually track the object or motion explains the state change. Prefer *immediate* updates for critical feedback, safety/validation states, very frequent interactions, reduced-motion, changes with no spatial relationship, and anywhere animation would delay task completion. When you do remove a trackable element, you may begin the exit, preserve layout, then commit removal — but never delay destructive/security/network logic to wait for decoration. Logical removal and visual exit can be decoupled.
 
 **Animate presentation, not truth.** Keep authoritative state correct and current; interpolate only the visual representation; expose the real value to accessibility APIs when accuracy matters. **Never fabricate** highs, lows, totals, progress, financial, health, or inventory values behind a smooth animation. Snap the display to the target once the remaining difference is imperceptible.
+
+**The whole moves as one.** Every animated quantity — value, axis range, badge, labels, position — should ease toward its target with the *same* interpolation, so the UI reads as one organism, not independent widgets updating separately. "It feels like one thing breathing rather than a bunch of parts updating independently."
+
+**Clarity and safety are design responsibilities, not the user's decoding job.** Translate machine data into human-readable language — "no more deciphering confusing events with weird names." Before a destructive or irreversible action (send/delete/sign/pay), preview/simulate the consequences and surface warnings with safer suggested actions. Reach the goal in the fewest taps. Keep layouts legible *at scale* — design for two items and for two hundred, offering an overview / "bird's eye view" so density never becomes noise.
 
 **Taste is what the machine lacks.** An agent "optimizes for working rather than feeling right" and often can't tell when something looks wrong. Whether you supervise an agent or *are* one, don't stop at "it works." Look at it: does the easing have the right personality? Does anything pop where it should glide? Should that arrow *rotate* rather than have its coordinates morphed? That judgment is the value you add.
 
@@ -192,6 +198,19 @@ Scan for these; apply only what's relevant. Detail lives in the reference files.
 | Delight repeats without restraint | Threshold + cooldown + falloff + cap |
 | Browser workaround applied globally | Restrict to verified affected elements |
 | Vague review feedback | Reference exact code and name the design principle |
+| Vague motion feedback ("hover feels sluggish") | Name the state and the cause — delay vs duration vs easing |
+| Motion feedback omits which frame it's about | Capture the animation state (idle / pop / settling / mid-transition) |
+| Contradictory state indicators crossfade | Sequence them — fade the old out fully before the new fades in |
+| Animated quantities each ease independently | Share one interpolation so the whole reads as one organism |
+| Motion only tested on calm / happy-path data | Stress-test against sharp reversals, spikes, bursty arrival |
+| Raw / technical labels or event names shown to users | Translate into human-readable language |
+| Destructive or irreversible action with no preview | Simulate consequences and warn before committing |
+| Core task buried in extra steps | Reach the goal in the fewest taps |
+| Layout degrades as item count grows | Design for scale; add grouping / a bird's-eye overview |
+| Async content or modal shifts the page | Reserve space by default (no layout shift) |
+| Third-party fonts / scripts loaded without opt-in | Privacy-respecting defaults; make external loads opt-in |
+| Behavior-changing options offered like cosmetic ones | Separate visual customization from behavioral footguns; gate and warn |
+| Text clips or wraps badly under translation | Treat i18n as first-class; pair with auto-fit / measured text |
 
 ## Completion standard
 

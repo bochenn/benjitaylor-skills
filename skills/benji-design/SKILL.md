@@ -61,7 +61,9 @@ Correct format: A single markdown table with `| Before | After | Why |` columns,
 
 ## The Fluidity Engine
 
-The mechanical heart of "fluid" is one primitive applied uniformly: **never render the raw incoming value — keep a persistent displayed value that chases a target every frame.** Value, axis range, badge width, color, scroll position, opacity, panel height — all of them ease toward a target. This is what turns discrete, jumpy input into continuous motion.
+The mechanical heart of "fluid" is one primitive applied uniformly: **never render the raw incoming value — keep a persistent displayed value that chases a target every frame.** Value, axis range, badge width, color, scroll position, opacity, panel height — all of them ease toward a target. This is what turns discrete, jumpy input into continuous motion. And when every one of those quantities moves under the *same* interpolation, the parts stop reading as separate widgets and start reading as one body.
+
+> "That's why it feels like one thing breathing rather than a bunch of parts updating independently."
 
 ### 1. Separate the target from the displayed value
 
@@ -178,6 +180,18 @@ To let *any* icon morph into any other, give every icon the same underlying stru
 
 This is a taste call a machine misses: morphing an arrow's coordinates *works*, but rotating it *feels right*. You supply that judgment.
 
+### Sequence contradictory indicators — never crossfade them
+
+When a status flips to its opposite (up→down, saving→saved), let the old indicator fade out *fully* before the new one fades in. Two contradictory signals sharing the screen for even a frame read as a glitch, not a transition.
+
+> "Arrows fade out fully before the new direction fades in."
+
+### Model status as named, animated states
+
+Don't blink a label from "Pending" to "Done." Model status as a sequence of named states and animate the change *between* each — Transaction → Analyzing → Safe — so the user watches the system think rather than seeing text swap.
+
+> "seamless animations between states (e.g. Transaction → Analyzing → Safe)."
+
 ## Easing, Duration, and Springs
 
 ### Curate a small easing vocabulary — reuse it everywhere
@@ -213,6 +227,12 @@ An easing curve with a control-point value **greater than 1** overshoots and set
 | Spinner rotation | ~1200ms linear, infinite |
 
 Keep interactive UI motion tight; the perception of speed is part of the feel. Save longer durations for first-run/explanatory moments the user sees rarely.
+
+### Let the data drive the tempo
+
+Continuous motion doesn't need a fixed rate. Tie its speed to the intensity of the underlying signal — a calm state drifts, a volatile one rushes — so the tempo itself carries information instead of running on a timer.
+
+> "Calm markets drift slowly, volatile ones rush."
 
 ### Spend physics (springs) sparingly
 
@@ -313,6 +333,12 @@ Hover/hit-test lookups use binary search over sorted data, not O(n) scans. All a
 
 Smoothness must never fabricate data. When drawing a line through points, a plain cubic/Catmull-Rom spline *overshoots* — drawing dips below a low or spikes above a high that never happened, which is actively misleading in a chart. Use **Fritsch-Carlson monotone cubic** interpolation, which guarantees the curve never exceeds the local min/max. Here, being correct *is* being polished.
 
+## Stress-Test Motion Against the Worst Case
+
+A chart that only looks good on calm data isn't tested — it's lucky. Before you ship an animation, exercise it against the inputs that break interpolation: sharp reversals, an isolated spike on a flat baseline, rapid oscillation, and irregular bursty arrival with gaps. This is a VERIFY step, not an afterthought — sharp reversals are where smooth motion tears.
+
+> "A chart that only looks good on calm data isn't much use… Sharp reversals are the classic breaking point."
+
 ## Squircles, Not Rounded Rectangles
 
 CSS `border-radius` produces a circular-arc corner with a visible curvature discontinuity where the arc meets the straight edge. For app-icon-grade smoothness, use a real superellipse (continuous-curvature) shape — a hand-authored SVG path, or a squircle library. Drawing it as an SVG cutout (an outer rect minus an inner superellipse, filled with the background color) also lets effects like a spinner sweep *behind* the mask.
@@ -325,6 +351,34 @@ The motion that feels right depends on the input device. Do not share one system
 - **Touch (mobile):** a bottom sheet slides up from the thumb with an overshoot curve; carousels become native `scroll-snap`; hit-areas get a `scale(1.4)` transparent padding.
 
 Forcing a desktop scale-morph onto a phone (or a mobile sheet onto desktop) is a common tell of unpolished work.
+
+## Beyond Motion: Clarity and Safety
+
+Fluidity is the surface; clarity and safety are the substance. Motion earns nothing if the thing it animates is unreadable or dangerous.
+
+### Translate machine data into human language
+
+Never surface raw event names, hashes, or technical labels and leave the user to decode them. Clarity is your responsibility, not theirs — convert the machine's data into plain, readable descriptions before it reaches the screen.
+
+> "No more deciphering confusing events with weird names — Family does that for you."
+
+### Preview consequences before destructive actions
+
+Before send, delete, sign, or pay, simulate what will happen and show it. Surface warnings for harmful actions and offer safer suggested paths. This is the *consequence* sibling of "play the exit before you commit the delete" — one guards the pixels, this guards the outcome.
+
+> "Understand your transactions before you send them… warnings about potentially harmful actions… simulations and suggested actions."
+
+### Spend the fewest taps
+
+The best path to a goal is the shortest one. Count the taps a core task takes, then cut them.
+
+> "Easily send… with the fewest taps."
+
+### Design for 200, not just 2
+
+A layout that reads well with two items must stay legible with two hundred. Provide grouping and a bird's-eye overview so growing density becomes structure, never noise.
+
+> "Whether you have two wallets or two hundred… a bird's eye view… unmatched clarity."
 
 ## Component API & DX Craft
 
@@ -365,6 +419,15 @@ Every stateful part works controlled or uncontrolled. Bake full ARIA in by defau
 ### Ship it lean
 
 Zero runtime dependencies where possible (React as the only peer), `sideEffects: false` for tree-shaking, no CSS imports to configure. The less friction to adopt, the more it gets used. Package size is a feature.
+
+### Defaults that protect the user
+
+Ship the safe default; make the risky thing opt-in.
+
+- **No layout shift by default.** Opening a modal or async content must not shove the page sideways. Reserve the space — add body padding equal to the scrollbar width and expose it as a CSS variable for custom solutions. ConnectKit ships this as `avoidLayoutShift: true`.
+- **Privacy-respecting by default.** Never fetch third-party resources (fonts, scripts, trackers) without the consumer's explicit opt-in. ConnectKit defaults `embedGoogleFonts: false` "to avoid loading any fonts from Google without your opt-in."
+- **Separate cosmetic options from behavioral footguns.** Color, radius, and font are safe to expose freely. Options that change *behavior* can quietly degrade UX for novices — gate them, document that they're situational, and warn: > "Only use these in very specific situations, as they may make your connection experience more difficult for novices."
+- **Internationalization is first-class.** Support localized strings from day one, and pair them with auto-fit/measured text (see FitText) so a longer translation never clips or wraps badly. ConnectKit ships 13 languages via a `language` option.
 
 ## Safari & Sub-Pixel Hygiene
 
@@ -407,6 +470,28 @@ A rubric for critique — whether you're giving it to an agent or generating it 
 - **Name the principle:** visual hierarchy, Gestalt grouping, whitespace, emphasis, conversion design.
 - **Reference a comparable product:** "like how Stripe/Linear/Vercel handles this."
 - **Keep it tight:** 2–3 sentences per note; 5–8 notes per page.
+
+### Precision falls off from observation to description
+
+The harder something is to describe, the more you lose by describing it instead of pointing. A vague word hides many distinct causes — each a different fix:
+
+> "'The button hover feels sluggish': which part? The delay before it starts? The duration? The easing?"
+
+### For motion, capture the STATE, not just the element
+
+Feedback on an animation is useless without naming *which* state it's about — idle, loading, pop, settling, mid-transition. Pause the animation to catch a mid-transition frame. The annotation that lands is structured: `Element / Timing(state) / Position / File / Feedback` — e.g. Timing "During settling state (wobble)" or "During pop state (burst animation)."
+
+### Terse feedback works *because* context is captured
+
+When element, selector, state, and position are captured structurally, the note itself can be one line — "slow this down," "make this more rounded." Rich captured context is what buys you brevity; don't pad the instruction to compensate for context you already have.
+
+> "'Slow this down.' 'Make this more rounded.'… The context is already captured."
+
+### Guidelines and feedback are two layers, not one
+
+A skill like this one encodes *principles* — the baseline an agent applies everywhere. Annotated feedback addresses *instances* — this element, right now. Neither replaces the other; this skill is the principles layer.
+
+> "guidelines describe principles; feedback addresses instances."
 
 ### The critique/fixer loop, and verify every step
 
@@ -451,3 +536,20 @@ When reviewing UI code, check for:
 | Combobox/menu missing ARIA | Wire `role` + `aria-activedescendant` by default |
 | Describing UI to an agent in prose | Point with selectors + structured, relational data |
 | Feedback like "make it better" | Specific, actionable, name the principle, cite a comparable |
+| Widgets update independently, not together | Ease every animated quantity under one interpolation — the whole "breathes" |
+| Contradictory indicators crossfade (up↔down) | Fade the old out fully before the new fades in — sequence, don't overlap |
+| Continuous motion runs at a fixed rate | Drive tempo from the data — calm drifts, volatile rushes |
+| Animation only tested on calm/ideal data | Stress-test sharp reversals, spikes, oscillation, bursty arrival |
+| Status swaps labels ("Pending"→"Done") | Model named states, animate between them (Transaction → Analyzing → Safe) |
+| Raw event names/hashes shown to users | Translate machine data into plain human-readable language |
+| Destructive action fires with no preview | Simulate consequences, warn on harm, suggest safer paths |
+| Core task buried under extra steps | Count the taps and cut to the fewest |
+| Layout only legible at small item counts | Design for 200 — grouping + a bird's-eye overview |
+| Opening a modal shifts the page | Reserve scrollbar-width space by default (`avoidLayoutShift`) |
+| Third-party fonts/scripts loaded without consent | Privacy-safe default; make external loads opt-in (`embedGoogleFonts: false`) |
+| Behavioral options exposed like cosmetic ones | Gate behavioral footguns, document, warn; keep cosmetic options free |
+| Strings hardcoded in one language | i18n from day one + auto-fit text so translations don't clip |
+| Feedback describes instead of points | Point at the exact element/state — description loses precision |
+| Animation note names only the element | Capture the STATE (idle/pop/settling); pause to catch mid-transition |
+| Long prose note despite captured context | Keep it terse — captured context buys brevity |
+| Guidelines treated as a substitute for feedback | Two layers: principles everywhere, feedback on instances |

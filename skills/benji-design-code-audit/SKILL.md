@@ -223,7 +223,11 @@ After editing:
 10. Check narrow and wide layouts.
 11. Check for clipping, scroll jumps, stale state, duplicate elements, focus
     loss, layout shift, and animation queues.
-12. Report what was verified and what could not be verified.
+12. Stress-test animations against worst-case data, not the happy path: sharp
+    reversals, isolated spikes on a flat baseline, rapid oscillation, and
+    irregular or bursty arrival with gaps. Sharp reversals are the classic
+    breaking point for interpolation.
+13. Report what was verified and what could not be verified.
 
 Never claim that an interaction feels correct if it was not possible to run or
 observe it. In that case, explain what was verified statically and what still
@@ -357,6 +361,41 @@ When interpolation is useful:
   values, inventory, or other critical information;
 - snap to the target when the remaining visual difference is imperceptible.
 
+## Translate machine data into human language
+
+Do not surface raw event names, hashes, enum codes, or technical labels to the
+user. Convert machine data into plain, readable descriptions. Decoding is a
+design responsibility, not the user's job.
+
+> "No more deciphering confusing events with weird names — Family does that for
+> you."
+
+## Preview consequences before destructive actions
+
+Before an irreversible or high-stakes action — send, delete, sign, pay — show
+what will happen, surface warnings for potentially harmful outcomes, and offer
+safer suggested actions. This is consequence preview, distinct from any exit
+animation.
+
+> "Understand your transactions before you send them… warnings about
+> potentially harmful actions… simulations and suggested actions."
+
+## Minimize interaction cost
+
+The best path to a goal is the shortest one. Count the taps, clicks, and steps a
+core task requires, and remove steps rather than decorating them.
+
+> "Easily send… with the fewest taps."
+
+## Preserve clarity at scale
+
+A layout must stay legible as item counts grow. Design for two items and for two
+hundred. Provide overview, grouping, and bird's-eye affordances so density never
+collapses into noise.
+
+> "Whether you have two wallets or two hundred… a bird's eye view… unmatched
+> clarity."
+
 # The Fluidity Engine
 
 Use the following pattern for continuously changing visual values, charts,
@@ -409,6 +448,16 @@ const speed = baseSpeed + (1 - gapRatio) * adaptiveBoost
 
 Use this only when it improves perception without hiding meaningful change.
 
+## Move every animated quantity together
+
+When several values change at once — a number, an axis range, a badge, a
+label, a position — ease them all toward their targets with the same
+interpolation on the same loop. Coupled interpolation reads as one system;
+independent timers read as unrelated widgets twitching.
+
+> "That's why it feels like one thing breathing rather than a bunch of parts
+> updating independently."
+
 # Enter, Exit, and Presence
 
 ## Enter and exit should express origin and destination
@@ -447,6 +496,17 @@ A common pattern:
   it.
 
 Use values that match the product's existing motion personality.
+
+## Sequence contradictory indicators
+
+When a status indicator flips to a contradictory value — up to down, saving to
+saved, positive to negative — do not crossfade the two. Let the old indicator
+fade out fully before the new one fades in. Overlapping opposite signals read as
+a glitch rather than a change.
+
+> "Arrows fade out fully before the new direction fades in."
+
+Compatible states may crossfade; contradictory states should be sequenced.
 
 # Morphing and Layout Continuity
 
@@ -512,6 +572,18 @@ For icons:
 - do not force every icon into one primitive model unless the system was
   designed for it.
 
+## Named status sequences
+
+Model a changing status as an explicit sequence of named states with animated
+transitions between each, rather than swapping one label for another. For
+example, a transaction surface may move through `Transaction → Analyzing →
+Safe`, animating the change from each state to the next.
+
+> "seamless animations between states (e.g. Transaction → Analyzing → Safe)."
+
+Name the states, define the transition between adjacent states, and preserve
+identity across the sequence.
+
 # Easing, Duration, and Springs
 
 ## Reuse a small motion vocabulary
@@ -570,6 +642,17 @@ For gesture-driven motion:
 - apply rubber-band resistance beyond bounds;
 - use pointer capture;
 - guard multi-touch and gesture ambiguity.
+
+## Data-driven tempo
+
+The tempo of continuous motion can be tied to the underlying signal rather than
+a fixed rate. A calm state can drift slowly while a volatile state rushes, so
+the motion itself communicates intensity.
+
+> "Calm markets drift slowly, volatile ones rush."
+
+Derive tempo from a real, current measure, and keep it bounded so bursts do not
+produce motion the user cannot follow.
 
 # Performance Is Part of the Feel
 
@@ -714,6 +797,35 @@ Prefer:
 - documentation and examples for shared primitives;
 - package and bundle cost appropriate to the feature.
 
+## Default to no layout shift
+
+Reserve space so opening an overlay, modal, or async region does not shift the
+page. A common technique is to add body padding equal to the scrollbar width,
+exposed as a CSS variable for custom solutions. Ship no-layout-shift as the
+default rather than an option.
+
+> ConnectKit `avoidLayoutShift: true` — "Avoids layout shift when the modal is
+> open by adding padding to the body."
+
+## Ship privacy-respecting defaults
+
+Do not fetch third-party resources — fonts, scripts, trackers — without the
+consumer's explicit opt-in. The default should make no external requests;
+external loads are opt-in.
+
+> ConnectKit `embedGoogleFonts: false` — "to avoid loading any fonts from Google
+> without your opt-in."
+
+## Separate cosmetic options from behavioral footguns
+
+Cosmetic options — color, radius, font — are safe to expose freely. Options that
+change behavior can degrade the experience, especially for novices. Gate them,
+document that they are for specific situations, and warn.
+
+> "options that have a larger impact than pure visual changes. Only use these in
+> very specific situations, as they may make your connection experience more
+> difficult for novices."
+
 # Theming and Visual Systems
 
 ## Derive visual roles, not semantic meaning
@@ -746,6 +858,16 @@ Use progressive visual enhancements only when they degrade safely:
 - high-refresh rendering.
 
 Do not make the core interaction depend on them.
+
+## Internationalization is first-class
+
+Treat localized strings as a baseline capability, not a later add-on. Support a
+language option and a translations system from the start, and pair it with
+auto-fit or measured text so variable-length translations never clip or wrap
+badly.
+
+> ConnectKit ships multiple languages via a `language` option and a
+> translations system.
 
 # Restraint and Delight
 
@@ -793,6 +915,45 @@ When auditing, reference concrete:
 
 Do not invent a hypothetical `Before` example and present it as an observed
 issue.
+
+## Prefer pointing over describing
+
+Precision decreases from observation to description. The harder something is to
+describe, the more you lose by describing it instead of pointing at it. A vague
+word hides many distinct causes.
+
+> "'The button hover feels sluggish': which part? The delay before it starts?
+> The duration? The easing?"
+
+When you receive or give motion feedback, resolve the vague term to the exact
+element, property, and value.
+
+## Capture animation state in motion feedback
+
+Feedback on an animation must name which state or frame it concerns — idle,
+loading, pop, settling, mid-transition — not just the element. Pause the
+animation to catch a mid-transition state. A useful annotation carries
+`Element / Timing(state) / Position / File / Feedback`.
+
+> Timing examples: "During settling state (wobble)"; "During pop state (burst
+> animation)."
+
+## Terse feedback is fine when context is captured
+
+When the element, selector, state, and position are captured structurally, the
+instruction itself can be short — "slow this down," "make this more rounded."
+Rich captured context earns terse direction; do not pad it.
+
+> "'Slow this down.' 'Make this more rounded.'… The context is already
+> captured."
+
+## Guidelines and feedback are complementary layers
+
+This skill is the principles layer: a baseline applied everywhere. Annotated
+feedback addresses instances — this specific element, right now. Neither
+replaces the other.
+
+> "guidelines describe principles; feedback addresses instances."
 
 ## Use relational design language
 
@@ -917,6 +1078,23 @@ Use this checklist during audit. Apply only relevant items.
 | Delight repeats without restraint | Add threshold, cooldown, falloff, and cap |
 | Browser workaround is applied globally | Restrict it to verified affected elements |
 | Review feedback is vague | Reference exact code and the design principle |
+| Related quantities animate on independent timers | Drive them from one clock and easing so the whole moves as one |
+| Contradictory indicators crossfade | Fade the old out fully before the new fades in |
+| Continuous motion runs at a fixed rate regardless of signal | Tie tempo to the data and bound it so it stays legible |
+| Animation only tested on calm or ideal data | Stress-test against reversals, spikes, oscillation, and bursty arrival |
+| Status change swaps labels | Model named states with animated transitions between them |
+| Raw event names or hashes shown to users | Translate machine data into plain, readable language |
+| Destructive action commits with no preview | Simulate consequences and warn before the commit point |
+| Core task takes more steps than necessary | Reduce to the fewest taps or clicks |
+| Layout degrades as item count grows | Provide grouping and overview affordances for scale |
+| Opening an overlay shifts the page | Reserve scrollbar-width space; default to no layout shift |
+| Third-party resources load without opt-in | Ship privacy-respecting defaults; make external loads opt-in |
+| Behavioral options exposed like cosmetic ones | Gate and warn on options that change behavior |
+| Localized text clips or is bolted on late | Treat i18n as first-class and pair with measured text |
+| Vague motion feedback such as "feels sluggish" | Resolve to the exact element, property, and value |
+| Motion feedback omits which state it concerns | Capture the animation state (idle, pop, settling, mid-transition) |
+| Terse instruction padded despite captured context | Keep the instruction short when context is structural |
+| Principles and instance feedback conflated | Apply the skill as baseline; use annotations for instances |
 
 # Completion Standard
 

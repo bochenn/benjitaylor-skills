@@ -18,6 +18,30 @@ animate: { duration: D * 0.75, delay: D * 0.25, ease: [0.26, 0.08, 0.25, 1] }
 exit:   { duration: D, position: 'absolute', left: '50%', x: '-50%', ease: [0.26, 0.08, 0.25, 1] }
 ```
 
+## Never crossfade contradictory state indicators — sequence them
+
+Asymmetric overlap is right for *neutral* content swaps, but a state indicator that flips to a **contradictory** value (up→down, saving→saved, safe→danger) must not overlap its old and new form. Two opposite signals visible at once read as a glitch — for a beat the UI is saying both things. Sequence instead: let the old indicator fade out *fully*, then fade the new one in.
+
+> "Arrows fade out fully before the new direction fades in."
+
+This is the one place to prefer a clean gap over a crossfade. It applies to direction arrows, up/down tints, status glyphs, and any badge whose two states assert opposite facts. (Neutral morphs — a label whose meaning merely refines — can still use shared-letter morphing below.)
+
+## Data-driven motion tempo
+
+The speed or intensity of continuous motion can be tied to the intensity of the underlying signal rather than fixed at a constant rate: a calm state drifts slowly, a volatile one rushes. This makes the motion itself *informative* — you feel the state before you read it.
+
+> "Calm markets drift slowly, volatile ones rush."
+
+Drive a tempo/amplitude parameter from a measured activity signal (recent variance, event rate, velocity) and feed it into duration, drift speed, or amplitude. Keep it bounded (a floor so calm isn't dead, a ceiling so volatile isn't seizure-inducing), respect reduced motion (map intensity to a non-spatial channel or hold it steady), and never let tempo distort the *data* — only its presentation.
+
+## Named, animated status sequences
+
+Model status as a sequence of **named states** with smooth transitions animating the change *between* them, rather than swapping one label for another. Naming the states (e.g. `Transaction → Analyzing → Safe`) makes the progression legible and gives each transition a defined start and end to animate.
+
+> "seamless animations between states (e.g. Transaction → Analyzing → Safe)."
+
+Define the state machine first (the named nodes and legal transitions), then animate each edge — morph the shared shell, crossfade or morph the differing content, and let color/icon carry the meaning. Because contradictory steps can appear in such a sequence (e.g. a `Danger` outcome), apply the "sequence, don't crossfade contradictory indicators" rule above to those edges.
+
 ## Container morphing (measure-then-transition)
 
 The single most valuable trick for step-based surfaces (dialogs, trays, inspectors, wizards): don't animate layout with a motion library. **Measure each step's content outside the frame loop, push its size into explicit dimensions / CSS custom properties, and let a plain transition morph them** while content crossfades independently on top.

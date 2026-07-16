@@ -32,6 +32,26 @@ Track selected or animated entities by **stable identifiers**, never by list ind
 
 A component should work well with minimal configuration: accessible roles and labels, keyboard behavior, reduced-motion behavior, coherent easing/duration, sensible focus management, stable identity, interruption handling, predictable controlled/uncontrolled behavior. Good defaults matter more than many options — most consumers never customize.
 
+## Defaults & governance — safe by default, footguns opt-in
+
+Defaults are policy. A shared component's defaults are applied by consumers who never read the options, so the default must be the safe, correct, privacy-respecting one; risky capability is opt-in.
+
+**Avoid layout shift by default.** Opening an overlay, modal, or async content must not shift the page. When locking body scroll, reserve the scrollbar's width (add padding equal to it) so content doesn't jump sideways, and expose that width as a CSS variable for consumers with custom scroll containers. Default to no-CLS.
+
+> ConnectKit `avoidLayoutShift: true` — "Avoids layout shift when the modal is open by adding padding to the body."
+
+**Privacy-respecting defaults.** Do not fetch third-party resources — fonts, scripts, trackers — without the consumer's explicit opt-in. Ship the privacy-safe default (self-hosted / system assets); make any external load a deliberate flag.
+
+> ConnectKit `embedGoogleFonts: false` — "to avoid loading any fonts from Google without your opt-in."
+
+**Separate visual customization from behavioral footguns.** Cosmetic options (color, radius, font) are safe to expose freely. Options that change *behavior* can degrade the experience — especially for novices — so gate them, document that they're for specific situations only, and warn in the API surface.
+
+> "options that have a larger impact than pure visual changes. Only use these in very specific situations, as they may make your connection experience more difficult for novices."
+
+## Internationalization is first-class
+
+Support localized strings from the start — a `language` option plus a translations system, not an afterthought bolted on later (ConnectKit ships 13 languages this way). i18n is also a *layout* constraint: translated strings vary wildly in length, so pair localization with the auto-fit / measured-text approach — measure the rendered string and fit it (hiding it with `visibility: hidden` until measured, per the Safari & sub-pixel section) so a long translation never clips, wraps badly, or blows out a fixed-width control. Remeasure on locale change (this is one of the triggers for remeasuring container morphs, too).
+
 ## Accessibility edge cases
 
 Verify, when relevant:
